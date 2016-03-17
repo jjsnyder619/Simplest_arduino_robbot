@@ -1,0 +1,152 @@
+#include <Servo.h> //include Servo library
+#include <NewPing.h>
+ 
+#define TRIGGER_PIN  13
+#define ECHO_PIN     12  
+//#define MAX_DISTANCE 100
+
+const int ledPinfront = 3;
+const int ledPinback = 6;
+const int RForward = 132; 
+const int RBackward = 0; 
+const int LForward = 0; //speed compensation
+const int LBackward = 180; 
+const int RNeutral = 90; 
+const int LNeutral = 90; //constants for motor speed
+//const int pingPin = 9;
+//const int irPin = 6;  //Sharp infrared sensor pin
+const int dangerThresh = 25; //threshold for obstacles (in cm)
+unsigned long leftDistance, rightDistance; //distances on either side
+//Servo panMotor;  
+Servo leftMotor;
+Servo rightMotor; //declare motors
+
+NewPing sonar(TRIGGER_PIN, ECHO_PIN);
+
+
+void setup()
+{
+  rightMotor.attach(10);
+  leftMotor.attach(9);
+ //pinMode(TRIGGER_PIN, OUTPUT);// for HC-sr04
+ //pinMode(ECHO_PIN, INPUT);// for HC-sr04
+  pinMode(ledPinfront, OUTPUT);
+  pinMode(ledPinback, OUTPUT);
+  //panMotor.attach(6); //attach motors to proper pins
+  //panMotor.write(90); //set PING))) pan to center
+  
+}
+
+void loop(){
+//for sensor
+  unsigned long duration, distance;
+  /*digitalWrite(TRIGGER_PIN, LOW);  // Added this line
+  delayMicroseconds(2); // Added this line
+  digitalWrite(TRIGGER_PIN, HIGH);
+  delayMicroseconds(10); // Added this line
+  digitalWrite(TRIGGER_PIN, LOW);
+  duration = pulseIn(ECHO_PIN, HIGH);
+  distance = (duration/2) / 29.1;*/
+  distance = sonar.ping_cm();
+  int distanceFwd = (distance);
+  
+  if (distanceFwd>dangerThresh) //if path is clear
+  {
+    leftMotor.write(LForward); 
+    rightMotor.write(RForward); //move forward
+    digitalWrite (ledPinback, HIGH);
+    digitalWrite (ledPinfront, HIGH);
+    delay(200);
+  }
+  else //if path is blocked
+  {
+    leftMotor.write(LNeutral);
+    rightMotor.write(RNeutral);
+    digitalWrite (ledPinback, LOW);
+    digitalWrite (ledPinfront, LOW);
+    delay(300);
+    //panMotor.write(0); 
+   
+    leftMotor.write(LForward);//turn right to scan
+    rightMotor.write(RBackward);
+    digitalWrite (ledPinback, HIGH);
+    digitalWrite (ledPinfront, LOW);
+    delay(175);
+
+    leftMotor.write(LNeutral);//pause
+    rightMotor.write(RNeutral);
+    digitalWrite (ledPinback, LOW);
+    digitalWrite (ledPinfront, LOW);
+    delay(150);
+    
+    rightDistance = sonar.ping_cm(); //scan to the right
+    delay(200);
+    //panMotor.write(180);
+
+    leftMotor.write(LNeutral);//pause
+    rightMotor.write(RNeutral);
+    digitalWrite (ledPinback, LOW);
+    digitalWrite (ledPinfront, LOW);
+    delay(500);
+    
+    leftMotor.write(LBackward);//turn left to scan
+    rightMotor.write(RForward);
+    digitalWrite (ledPinback, LOW);
+    digitalWrite (ledPinfront, HIGH);
+    delay(360);
+
+    leftMotor.write(LNeutral);//pause
+    rightMotor.write(RNeutral);
+    digitalWrite (ledPinback, LOW);
+    digitalWrite (ledPinfront, LOW);
+    delay(500);
+    
+   
+ 
+    leftDistance = sonar.ping_cm(); //scan to the left
+    delay(500);
+    
+    //panMotor.write(90); //turn right to return to center
+    leftMotor.write(LForward);
+    rightMotor.write(RBackward);
+    delay(180);
+   
+    compareDistance();
+  }
+}
+  
+void compareDistance()
+{
+  if (leftDistance>rightDistance) //if left is less obstructed 
+  {
+    leftMotor.write(LBackward); 
+    rightMotor.write(RForward); //turn left
+    digitalWrite (ledPinback, HIGH);
+    digitalWrite (ledPinfront, LOW);
+    delay(180); 
+  }
+  else if (rightDistance>leftDistance) //if right is less obstructed
+  {
+    leftMotor.write(LForward);
+    rightMotor.write(RBackward); //turn right
+    digitalWrite (ledPinback, LOW);
+    digitalWrite (ledPinfront, HIGH);
+    delay(180); 
+  }
+   else //if they are equally obstructed
+  {
+    leftMotor.write(LForward); 
+    rightMotor.write(RBackward); //reverse
+    digitalWrite (ledPinback, HIGH);
+    digitalWrite (ledPinfront, HIGH);
+    delay(170); //180 degree turn
+
+    leftMotor.write(LForward); 
+    rightMotor.write(RForward); 
+    digitalWrite (ledPinback, LOW);
+    digitalWrite (ledPinfront, LOW);
+    //delay(1000);
+  
+  }
+
+}
