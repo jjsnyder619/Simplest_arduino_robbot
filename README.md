@@ -1,1 +1,2 @@
-This code is for a simple robot that uses the Adafruit Trinket Pro, continuous rotation servos and inexpensive ultrasonic distance sensor. 
+This code is for a simple robot that uses the Adafruit Trinket Pro, continuous rotation servos and inexpensive ultrasonic distance sensor. An advantage of this little robot is that made of the minimum number of inexpensive parts that are merely hot glued together.
+Another advantage of this Simplest_robot is flexibility. Since the core of this project is mounted on a mini breadboard, the robot can easily be modified. It is a cinch to add pretty LEDs or other sensors, such as an IR receiever or IR distance sensors.
